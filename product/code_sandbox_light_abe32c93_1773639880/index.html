@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpeakUp - コミュニケーション能力向上アプリ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #6C63FF;
+            --accent-color: #FF6584;
+            --background-color: #F8F9FF;
+            --card-background: #FFFFFF;
+            --text-primary: #2D3748;
+            --text-secondary: #718096;
+            --border-color: #E2E8F0;
+            --success-color: #48BB78;
+            --warning-color: #ED8936;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #8B82FF;
+            --accent-color: #FF7B9B;
+            --background-color: #1A202C;
+            --card-background: #2D3748;
+            --text-primary: #E2E8F0;
+            --text-secondary: #A0AEC0;
+            --border-color: #4A5568;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            max-width: 390px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 70px;
+            transition: all 0.3s ease;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ホーム画面 */
+        .home-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #8B82FF 100%);
+            padding: 40px 20px 30px;
+            border-radius: 0 0 30px 30px;
+            color: white;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .tagline {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .progress-summary {
+            display: flex;
+            justify-content: space-around;
+            margin: -30px 20px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .progress-card {
+            background: var(--card-background);
+            padding: 15px;
+            border-radius: 15px;
+            flex: 1;
+            margin: 0 5px;
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.1);
+            text-align: center;
+        }
+
+        .progress-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .progress-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .main-cta {
+            margin: 30px 20px;
+        }
+
+        .cta-button {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #8B82FF 100%);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(108, 99, 255, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .cta-button:active {
+            transform: scale(0.98);
+        }
+
+        .recent-section {
+            padding: 0 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .recent-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .recent-card {
+            background: var(--card-background);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .recent-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .recent-info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .recent-score {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        /* シナリオ選択画面 */
+        .scenario-header {
+            padding: 20px;
+            background: var(--card-background);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .scenario-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .category-filters {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .category-filter {
+            padding: 8px 16px;
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .category-filter.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .scenario-list {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .scenario-card {
+            background: var(--card-background);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .scenario-card:active {
+            transform: scale(0.98);
+        }
+
+        .scenario-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .scenario-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .scenario-category {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .scenario-difficulty {
+            font-size: 14px;
+            color: var(--warning-color);
+        }
+
+        .scenario-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 10px;
+        }
+
+        /* 会話練習画面 */
+        .conversation-screen {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 70px);
+            background: var(--background-color);
+        }
+
+        .conversation-header {
+            background: var(--card-background);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .scenario-info {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .end-button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--border-color);
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            width: 45%;
+            transition: width 0.3s;
+        }
+
+        .ai-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+        }
+
+        .ai-avatar {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #8B82FF 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(108, 99, 255, 0.3);
+            animation: avatarPulse 2s infinite;
+            position: relative;
+        }
+
+        .ai-avatar.speaking {
+            animation: avatarPulse 0.8s infinite;
+        }
+
+        @keyframes avatarPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .ai-avatar-icon {
+            font-size: 60px;
+        }
+
+        .speech-bubble {
+            background: var(--card-background);
+            padding: 20px;
+            border-radius: 20px;
+            max-width: 85%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 10px solid var(--card-background);
+        }
+
+        .speech-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .user-section {
+            background: var(--card-background);
+            padding: 25px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .mic-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            border: none;
+            color: white;
+            font-size: 36px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(255, 101, 132, 0.4);
+            transition: all 0.2s;
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .mic-button.recording {
+            animation: micPulse 0.8s infinite;
+            background: #FF3B5C;
+        }
+
+        @keyframes micPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 8px 20px rgba(255, 101, 132, 0.4); }
+            50% { transform: scale(1.1); box-shadow: 0 12px 30px rgba(255, 101, 132, 0.6); }
+        }
+
+        .user-response {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            min-height: 20px;
+        }
+
+        /* 評価画面 */
+        .evaluation-screen {
+            padding: 20px;
+            padding-bottom: 90px;
+        }
+
+        .evaluation-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .evaluation-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .overall-score {
+            width: 180px;
+            height: 180px;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .score-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary-color) 0% 72%, var(--border-color) 72% 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .score-inner {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: var(--card-background);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-number {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .score-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .radar-chart-container {
+            background: var(--card-background);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .radar-chart-container h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 250px;
+        }
+
+        .feedback-section {
+            background: var(--card-background);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .feedback-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feedback-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .feedback-item {
+            display: flex;
+            gap: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .feedback-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .best-response {
+            background: linear-gradient(135deg, #48BB78 0%, #38A169 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .best-response h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .best-response-text {
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .action-button {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-button.primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .action-button.secondary {
+            background: var(--background-color);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .share-button {
+            width: 100%;
+            background: var(--card-background);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* 学習記録画面 */
+        .record-screen {
+            padding: 20px;
+            padding-bottom: 90px;
+        }
+
+        .record-header {
+            margin-bottom: 25px;
+        }
+
+        .record-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .period-selector {
+            display: flex;
+            gap: 8px;
+        }
+
+        .period-button {
+            padding: 8px 16px;
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .period-button.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .chart-card {
+            background: var(--card-background);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 200px;
+        }
+
+        .badges-section {
+            background: var(--card-background);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .badges-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .badge-item {
+            text-align: center;
+        }
+
+        .badge-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #8B82FF 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin: 0 auto 8px;
+        }
+
+        .badge-name {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .weakness-section {
+            background: var(--card-background);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .weakness-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .weakness-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .weakness-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .weakness-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .weakness-bar {
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .weakness-fill {
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 0.3s;
+        }
+
+        /* ナビゲーション */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 390px;
+            background: var(--card-background);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+        }
+
+        /* ダークモード切り替え */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- ダークモード切り替え -->
+    <div class="theme-toggle" onclick="toggleTheme()">🌙</div>
+
+    <!-- ホーム画面 -->
+    <div class="screen active" id="home-screen">
+        <div class="home-header">
+            <div class="logo">SpeakUp</div>
+            <div class="tagline">AIと話して、人間関係を変えよう</div>
+        </div>
+
+        <div class="progress-summary">
+            <div class="progress-card">
+                <div class="progress-value">8</div>
+                <div class="progress-label">レベル</div>
+            </div>
+            <div class="progress-card">
+                <div class="progress-value">12h</div>
+                <div class="progress-label">総練習時間</div>
+            </div>
+            <div class="progress-card">
+                <div class="progress-value">7日</div>
+                <div class="progress-label">連続日数</div>
+            </div>
+        </div>
+
+        <div class="main-cta">
+            <button class="cta-button" onclick="showScreen('scenario')">今日の練習を始める 🚀</button>
+        </div>
+
+        <div class="recent-section">
+            <h2 class="section-title">最近の練習</h2>
+            <div class="recent-cards">
+                <div class="recent-card">
+                    <div class="recent-info">
+                        <h4>上司への報告</h4>
+                        <p>2時間前・職場</p>
+                    </div>
+                    <div class="recent-score">72点</div>
+                </div>
+                <div class="recent-card">
+                    <div class="recent-info">
+                        <h4>初対面の人との雑談</h4>
+                        <p>昨日・初対面</p>
+                    </div>
+                    <div class="recent-score">68点</div>
+                </div>
+                <div class="recent-card">
+                    <div class="recent-info">
+                        <h4>コンビニ店員との会話</h4>
+                        <p>2日前・日常</p>
+                    </div>
+                    <div class="recent-score">85点</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- シナリオ選択画面 -->
+    <div class="screen" id="scenario-screen">
+        <div class="scenario-header">
+            <h1>シナリオを選ぶ</h1>
+            <div class="category-filters">
+                <div class="category-filter active" onclick="filterCategory('all')">すべて</div>
+                <div class="category-filter" onclick="filterCategory('work')">職場</div>
+                <div class="category-filter" onclick="filterCategory('daily')">日常</div>
+                <div class="category-filter" onclick="filterCategory('romance')">恋愛</div>
+                <div class="category-filter" onclick="filterCategory('friend')">友人</div>
+                <div class="category-filter" onclick="filterCategory('first')">初対面</div>
+            </div>
+        </div>
+
+        <div class="scenario-list">
+            <div class="scenario-card" data-category="work" onclick="startConversation('上司への報告')">
+                <div class="scenario-card-header">
+                    <div>
+                        <div class="scenario-title">上司への報告</div>
+                        <div class="scenario-category">職場</div>
+                    </div>
+                    <div class="scenario-difficulty">★★★</div>
+                </div>
+                <div class="scenario-description">プロジェクトの進捗を上司に簡潔に報告する練習</div>
+                <div class="scenario-meta">
+                    <span>⏱️ 5分</span>
+                    <span>💬 難易度: 中</span>
+                </div>
+            </div>
+
+            <div class="scenario-card" data-category="first" onclick="startConversation('初対面の人との雑談')">
+                <div class="scenario-card-header">
+                    <div>
+                        <div class="scenario-title">初対面の人との雑談</div>
+                        <div class="scenario-category">初対面</div>
+                    </div>
+                    <div class="scenario-difficulty">★★</div>
+                </div>
+                <div class="scenario-description">社交的な場で初めて会った人と会話を続ける</div>
+                <div class="scenario-meta">
+                    <span>⏱️ 4分</span>
+                    <span>💬 難易度: 易</span>
+                </div>
+            </div>
+
+            <div class="scenario-card" data-category="friend" onclick="startConversation('友達への誘い断り方')">
+                <div class="scenario-card-header">
+                    <div>
+                        <div class="scenario-title">友達への誘い断り方</div>
+                        <div class="scenario-category">友人</div>
+                    </div>
+                    <div class="scenario-difficulty">★★</div>
+                </div>
+                <div class="scenario-description">友達からの誘いを上手に断る練習</div>
+                <div class="scenario-meta">
+                    <span>⏱️ 3分</span>
+                    <span>💬 難易度: 易</span>
+                </div>
+            </div>
+
+            <div class="scenario-card" data-category="romance" onclick="startConversation('デートの誘い方')">
+                <div class="scenario-card-header">
+                    <div>
+                        <div class="scenario-title">デートの誘い方</div>
+                        <div class="scenario-category">恋愛</div>
+                    </div>
+                    <div class="scenario-difficulty">★★★★</div>
+                </div>
+                <div class="scenario-description">気になる人を自然にデートに誘う</div>
+                <div class="scenario-meta">
+                    <span>⏱️ 6分</span>
+                    <span>💬 難易度: 高</span>
+                </div>
+            </div>
+
+            <div class="scenario-card" data-category="daily" onclick="startConversation('コンビニ店員との会話')">
+                <div class="scenario-card-header">
+                    <div>
+                        <div class="scenario-title">コンビニ店員との会話</div>
+                        <div class="scenario-category">日常</div>
+                    </div>
+                    <div class="scenario-difficulty">★</div>
+                </div>
+                <div class="scenario-description">日常的な買い物での基本的なやり取り</div>
+                <div class="scenario-meta">
+                    <span>⏱️ 2分</span>
+                    <span>💬 難易度: 超易</span>
+                </div>
+            </div>
+
+            <div class="scenario-card" data-category="first" onclick="startConversation('グループでの自己紹介')">
+                <div class="scenario-card-header">
+                    <div>
+                        <div class="scenario-title">グループでの自己紹介</div>
+                        <div class="scenario-category">初対面</div>
+                    </div>
+                    <div class="scenario-difficulty">★★★</div>
+                </div>
+                <div class="scenario-description">複数人の前で自己紹介をする練習</div>
+                <div class="scenario-meta">
+                    <span>⏱️ 4分</span>
+                    <span>💬 難易度: 中</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 会話練習画面 -->
+    <div class="screen" id="conversation-screen">
+        <div class="conversation-header">
+            <div class="scenario-info" id="current-scenario">上司への報告</div>
+            <button class="end-button" onclick="endConversation()">終了する</button>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="conversation-progress"></div>
+        </div>
+
+        <div class="ai-section">
+            <div class="ai-avatar" id="ai-avatar">
+                <div class="ai-avatar-icon">🤖</div>
+            </div>
+            <div class="speech-bubble">
+                <div class="speech-text" id="ai-speech">
+                    こんにちは。今日はプロジェクトの進捗について聞かせてください。
+                </div>
+            </div>
+        </div>
+
+        <div class="user-section">
+            <button class="mic-button" id="mic-button" onclick="toggleRecording()">🎤</button>
+            <div class="user-response" id="user-response">タップして話す</div>
+        </div>
+    </div>
+
+    <!-- 評価・フィードバック画面 -->
+    <div class="screen" id="evaluation-screen">
+        <div class="evaluation-header">
+            <h1>練習結果</h1>
+            <div class="overall-score">
+                <div class="score-circle">
+                    <div class="score-inner">
+                        <div class="score-number">72</div>
+                        <div class="score-label">総合スコア</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="radar-chart-container">
+            <h3>📊 詳細評価</h3>
+            <div class="chart-wrapper">
+                <canvas id="radarChart"></canvas>
+            </div>
+        </div>
+
+        <div class="best-response">
+            <h3>🌟 今日のベスト返答</h3>
+            <div class="best-response-text">
+                「その件につきましては、昨日までに資料をまとめ終えております。明日の会議で詳しくご報告させていただきます。」
+            </div>
+        </div>
+
+        <div class="feedback-section">
+            <h3>👍 良かった点</h3>
+            <div class="feedback-list">
+                <div class="feedback-item">
+                    <div class="feedback-icon">✅</div>
+                    <div>敬語の使い方が正確で、ビジネスシーンに適した表現ができていました。</div>
+                </div>
+                <div class="feedback-item">
+                    <div class="feedback-icon">✅</div>
+                    <div>結論から先に述べる報告スタイルで、要点が明確に伝わりました。</div>
+                </div>
+                <div class="feedback-item">
+                    <div class="feedback-icon">✅</div>
+                    <div>相手の質問に対して具体的な情報を提示できていました。</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feedback-section">
+            <h3>💡 改善点</h3>
+            <div class="feedback-list">
+                <div class="feedback-item">
+                    <div class="feedback-icon">📝</div>
+                    <div>話と話の間に「えーっと」などのフィラーワードが多く見られました。一呼吸置いてから話すことを意識しましょう。</div>
+                </div>
+                <div class="feedback-item">
+                    <div class="feedback-icon">📝</div>
+                    <div>もう少し共感の表現を入れると、コミュニケーションが円滑になります。「ご心配おかけして申し訳ございません」などの配慮の言葉を追加してみましょう。</div>
+                </div>
+                <div class="feedback-item">
+                    <div class="feedback-icon">📝</div>
+                    <div>話すスピードが少し速いです。相手が理解しやすいよう、もう少しゆっくり話すことを心がけましょう。</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="action-button secondary" onclick="showScreen('scenario')">もう一度練習</button>
+            <button class="action-button primary" onclick="showScreen('scenario')">次のシナリオへ</button>
+        </div>
+
+        <button class="share-button" onclick="shareResult()">📤 結果をシェア</button>
+    </div>
+
+    <!-- 学習記録画面 -->
+    <div class="screen" id="record-screen">
+        <div class="record-header">
+            <h1>学習記録</h1>
+            <div class="period-selector">
+                <button class="period-button active" onclick="changePeriod('week')">週間</button>
+                <button class="period-button" onclick="changePeriod('month')">月間</button>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>📈 練習回数の推移</h3>
+            <div class="chart-container">
+                <canvas id="practiceChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>📊 スコアの推移</h3>
+            <div class="chart-container">
+                <canvas id="scoreChart"></canvas>
+            </div>
+        </div>
+
+        <div class="badges-section">
+            <h3>🏆 獲得バッジ</h3>
+            <div class="badges-grid">
+                <div class="badge-item">
+                    <div class="badge-icon">🎯</div>
+                    <div class="badge-name">初回練習</div>
+                </div>
+                <div class="badge-item">
+                    <div class="badge-icon">🔥</div>
+                    <div class="badge-name">7日連続</div>
+                </div>
+                <div class="badge-item">
+                    <div class="badge-icon">⭐</div>
+                    <div class="badge-name">スコア80超</div>
+                </div>
+                <div class="badge-item">
+                    <div class="badge-icon">💯</div>
+                    <div class="badge-name">完璧な会話</div>
+                </div>
+                <div class="badge-item">
+                    <div class="badge-icon">📚</div>
+                    <div class="badge-name">50回練習</div>
+                </div>
+                <div class="badge-item">
+                    <div class="badge-icon">🎓</div>
+                    <div class="badge-name">達人レベル</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="weakness-section">
+            <h3>🎯 強化ポイント</h3>
+            <div class="weakness-bars">
+                <div class="weakness-item">
+                    <div class="weakness-header">
+                        <span>テンポ・間</span>
+                        <span>60点</span>
+                    </div>
+                    <div class="weakness-bar">
+                        <div class="weakness-fill" style="width: 60%;"></div>
+                    </div>
+                </div>
+                <div class="weakness-item">
+                    <div class="weakness-header">
+                        <span>共感表現</span>
+                        <span>65点</span>
+                    </div>
+                    <div class="weakness-bar">
+                        <div class="weakness-fill" style="width: 65%;"></div>
+                    </div>
+                </div>
+                <div class="weakness-item">
+                    <div class="weakness-header">
+                        <span>話の明確さ</span>
+                        <span>78点</span>
+                    </div>
+                    <div class="weakness-bar">
+                        <div class="weakness-fill" style="width: 78%;"></div>
+                    </div>
+                </div>
+                <div class="weakness-item">
+                    <div class="weakness-header">
+                        <span>敬語の正確さ</span>
+                        <span>85点</span>
+                    </div>
+                    <div class="weakness-bar">
+                        <div class="weakness-fill" style="width: 85%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部ナビゲーション -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="showScreen('home')">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">ホーム</div>
+        </div>
+        <div class="nav-item" onclick="showScreen('scenario')">
+            <div class="nav-icon">📝</div>
+            <div class="nav-label">シナリオ</div>
+        </div>
+        <div class="nav-item" onclick="showScreen('record')">
+            <div class="nav-icon">📊</div>
+            <div class="nav-label">記録</div>
+        </div>
+        <div class="nav-item" onclick="alert('プロフィール機能は開発中です')">
+            <div class="nav-icon">👤</div>
+            <div class="nav-label">プロフィール</div>
+        </div>
+    </div>
+
+    <script>
+        // 画面遷移機能
+        function showScreen(screenName) {
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(screen => screen.classList.remove('active'));
+            
+            const targetScreen = document.getElementById(`${screenName}-screen`);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+            }
+
+            // ナビゲーションのアクティブ状態を更新
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            
+            if (screenName === 'home') {
+                navItems[0].classList.add('active');
+            } else if (screenName === 'scenario') {
+                navItems[1].classList.add('active');
+            } else if (screenName === 'record') {
+                navItems[2].classList.add('active');
+                initializeCharts();
+            }
+        }
+
+        // シナリオフィルター
+        function filterCategory(category) {
+            const filters = document.querySelectorAll('.category-filter');
+            filters.forEach(filter => filter.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const cards = document.querySelectorAll('.scenario-card');
+            cards.forEach(card => {
+                if (category === 'all' || card.dataset.category === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // 会話開始
+        let conversationTimer;
+        let conversationProgress = 0;
+        let aiMessages = [
+            'こんにちは。今日はプロジェクトの進捗について聞かせてください。',
+            'なるほど、それで今週の目標達成率はどのくらいですか？',
+            '分かりました。次週に向けて何か懸念事項はありますか？',
+            'ありがとうございます。では、その対策について詳しく教えてください。'
+        ];
+        let currentMessageIndex = 0;
+
+        function startConversation(scenarioName) {
+            document.getElementById('current-scenario').textContent = scenarioName;
+            showScreen('conversation');
+            currentMessageIndex = 0;
+            conversationProgress = 0;
+            updateConversationProgress();
+            
+            // AIアバターを話している状態に
+            document.getElementById('ai-avatar').classList.add('speaking');
+            
+            // 会話を自動進行
+            conversationTimer = setTimeout(() => {
+                simulateConversationFlow();
+            }, 3000);
+        }
+
+        function simulateConversationFlow() {
+            if (currentMessageIndex < aiMessages.length - 1) {
+                currentMessageIndex++;
+                document.getElementById('ai-speech').textContent = aiMessages[currentMessageIndex];
+                conversationProgress = (currentMessageIndex / aiMessages.length) * 100;
+                updateConversationProgress();
+                
+                conversationTimer = setTimeout(simulateConversationFlow, 5000);
+            } else {
+                // 会話終了
+                setTimeout(() => {
+                    endConversation();
+                }, 3000);
+            }
+        }
+
+        function updateConversationProgress() {
+            document.getElementById('conversation-progress').style.width = conversationProgress + '%';
+        }
+
+        // 録音機能（モック）
+        let isRecording = false;
+        let userResponses = [
+            'はい、プロジェクトは順調に進んでおります。',
+            'えーっと、約85%ほど達成できております。',
+            'はい、少しリソース不足が懸念されます。',
+            '追加のメンバーを配置する予定です。'
+        ];
+
+        function toggleRecording() {
+            const micButton = document.getElementById('mic-button');
+            const userResponse = document.getElementById('user-response');
+            const aiAvatar = document.getElementById('ai-avatar');
+            
+            isRecording = !isRecording;
+            
+            if (isRecording) {
+                micButton.classList.add('recording');
+                userResponse.textContent = '録音中...';
+                aiAvatar.classList.remove('speaking');
+                
+                // 2秒後に録音終了
+                setTimeout(() => {
+                    isRecording = false;
+                    micButton.classList.remove('recording');
+                    userResponse.textContent = userResponses[currentMessageIndex] || 'ありがとうございました。';
+                    aiAvatar.classList.add('speaking');
+                }, 2000);
+            }
+        }
+
+        function endConversation() {
+            clearTimeout(conversationTimer);
+            document.getElementById('ai-avatar').classList.remove('speaking');
+            showScreen('evaluation');
+            initializeRadarChart();
+        }
+
+        // レーダーチャート初期化
+        let radarChart;
+        function initializeRadarChart() {
+            const ctx = document.getElementById('radarChart');
+            if (!ctx) return;
+
+            if (radarChart) {
+                radarChart.destroy();
+            }
+
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['話の明確さ', '敬語の正確さ', 'テンポ・間', '共感表現'],
+                    datasets: [{
+                        label: '今回のスコア',
+                        data: [78, 85, 60, 65],
+                        fill: true,
+                        backgroundColor: 'rgba(108, 99, 255, 0.2)',
+                        borderColor: 'rgba(108, 99, 255, 1)',
+                        pointBackgroundColor: 'rgba(108, 99, 255, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(108, 99, 255, 1)'
+                    }]
+                },
+                options: {
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: {
+                                stepSize: 20
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // 学習記録チャート初期化
+        let practiceChart, scoreChart;
+        function initializeCharts() {
+            // 練習回数チャート
+            const practiceCtx = document.getElementById('practiceChart');
+            if (practiceCtx && !practiceChart) {
+                practiceChart = new Chart(practiceCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['月', '火', '水', '木', '金', '土', '日'],
+                        datasets: [{
+                            label: '練習回数',
+                            data: [3, 2, 4, 3, 5, 2, 4],
+                            backgroundColor: 'rgba(108, 99, 255, 0.8)',
+                            borderColor: 'rgba(108, 99, 255, 1)',
+                            borderWidth: 2,
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // スコアチャート
+            const scoreCtx = document.getElementById('scoreChart');
+            if (scoreCtx && !scoreChart) {
+                scoreChart = new Chart(scoreCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['月', '火', '水', '木', '金', '土', '日'],
+                        datasets: [{
+                            label: '平均スコア',
+                            data: [65, 68, 70, 72, 75, 71, 78],
+                            fill: true,
+                            backgroundColor: 'rgba(108, 99, 255, 0.1)',
+                            borderColor: 'rgba(108, 99, 255, 1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            pointBackgroundColor: 'rgba(108, 99, 255, 1)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // 期間変更
+        function changePeriod(period) {
+            const buttons = document.querySelectorAll('.period-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // チャートデータを更新（モック）
+            if (period === 'month') {
+                practiceChart.data.labels = ['1週', '2週', '3週', '4週'];
+                practiceChart.data.datasets[0].data = [15, 18, 20, 23];
+                practiceChart.update();
+
+                scoreChart.data.labels = ['1週', '2週', '3週', '4週'];
+                scoreChart.data.datasets[0].data = [65, 70, 73, 78];
+                scoreChart.update();
+            } else {
+                practiceChart.data.labels = ['月', '火', '水', '木', '金', '土', '日'];
+                practiceChart.data.datasets[0].data = [3, 2, 4, 3, 5, 2, 4];
+                practiceChart.update();
+
+                scoreChart.data.labels = ['月', '火', '水', '木', '金', '土', '日'];
+                scoreChart.data.datasets[0].data = [65, 68, 70, 72, 75, 71, 78];
+                scoreChart.update();
+            }
+        }
+
+        // シェア機能
+        function shareResult() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'SpeakUp - 練習結果',
+                    text: '今日の会話練習で72点を獲得しました！🎉',
+                    url: window.location.href
+                }).catch(err => console.log('シェアがキャンセルされました'));
+            } else {
+                alert('この機能はモバイルデバイスで利用できます');
+            }
+        }
+
+        // ダークモード切り替え
+        function toggleTheme() {
+            const body = document.body;
+            const toggle = document.querySelector('.theme-toggle');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                toggle.textContent = '🌙';
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                toggle.textContent = '☀️';
+            }
+        }
+
+        // ページ読み込み時の初期化
+        window.addEventListener('load', () => {
+            // 初期画面をホームに設定
+            showScreen('home');
+        });
+    </script>
+</body>
+</html>
