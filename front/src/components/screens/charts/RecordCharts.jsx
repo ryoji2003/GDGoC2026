@@ -11,7 +11,6 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
-import { chartData } from '../../../data/mockData';
 
 ChartJS.register(
   CategoryScale,
@@ -39,14 +38,13 @@ const lineOptions = {
   scales: { y: { beginAtZero: true, max: 100 } },
 };
 
-export function PracticeChart({ period }) {
-  const d = chartData[period];
-  const data = {
-    labels: d.labels,
+export function PracticeChart({ data }) {
+  const chartData = {
+    labels: data.labels,
     datasets: [
       {
         label: '練習回数',
-        data: d.practice,
+        data: data.practice,
         backgroundColor: 'rgba(108, 99, 255, 0.8)',
         borderColor: 'rgba(108, 99, 255, 1)',
         borderWidth: 2,
@@ -54,17 +52,16 @@ export function PracticeChart({ period }) {
       },
     ],
   };
-  return <Bar data={data} options={barOptions} />;
+  return <Bar data={chartData} options={barOptions} />;
 }
 
-export function ScoreChart({ period }) {
-  const d = chartData[period];
-  const data = {
-    labels: d.labels,
+export function ScoreChart({ data }) {
+  const chartData = {
+    labels: data.labels,
     datasets: [
       {
         label: '平均スコア',
-        data: d.score,
+        data: data.score,
         fill: true,
         backgroundColor: 'rgba(108, 99, 255, 0.1)',
         borderColor: 'rgba(108, 99, 255, 1)',
@@ -77,5 +74,5 @@ export function ScoreChart({ period }) {
       },
     ],
   };
-  return <Line data={data} options={lineOptions} />;
+  return <Line data={chartData} options={lineOptions} />;
 }

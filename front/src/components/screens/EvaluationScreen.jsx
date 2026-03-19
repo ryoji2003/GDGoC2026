@@ -1,17 +1,64 @@
+import { useState, useEffect } from 'react';
 import RadarChart from './charts/RadarChart';
+import { analyzeConversation } from '../../api/evaluationApi';
+import { saveRecord } from '../../api/recordApi';
 
-export default function EvaluationScreen({ navigate }) {
+export default function EvaluationScreen({ navigate, conversationHistory, userId, scenarioName }) {
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    analyzeConversation(conversationHistory)
+      .then(data => {
+        setResult(data);
+        saveRecord(userId, scenarioName, data.scores, data.feedback).catch(() => {});
+      })
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
+
   function shareResult() {
+    const score = result ? Math.round((result.scores.clarity + result.scores.keigo + result.scores.tempo + result.scores.empathy) / 4) : 0;
     if (navigator.share) {
       navigator.share({
         title: 'SpeakUp - 練習結果',
-        text: '今日の会話練習で72点を獲得しました！🎉',
+        text: `今日の会話練習で${score}点を獲得しました！🎉`,
         url: window.location.href,
       }).catch(() => {});
     } else {
       alert('この機能はモバイルデバイスで利用できます');
     }
   }
+
+  if (loading) {
+    return (
+      <div className="screen active">
+        <div className="evaluation-screen">
+          <div className="loading">評価を分析中...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="screen active">
+        <div className="evaluation-screen">
+          <div className="error">エラー: {error}</div>
+          <div className="action-buttons">
+            <button className="action-button secondary" onClick={() => navigate('scenario')}>
+              戻る
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const overallScore = result
+    ? Math.round((result.scores.clarity + result.scores.keigo + result.scores.tempo + result.scores.empathy) / 4)
+    : 0;
 
   return (
     <div className="screen active">
@@ -21,7 +68,7 @@ export default function EvaluationScreen({ navigate }) {
           <div className="overall-score">
             <div className="score-circle">
               <div className="score-inner">
-                <div className="score-number">72</div>
+                <div className="score-number">{overallScore}</div>
                 <div className="score-label">総合スコア</div>
               </div>
             </div>
@@ -31,52 +78,44 @@ export default function EvaluationScreen({ navigate }) {
         <div className="radar-chart-container">
           <h3>📊 詳細評価</h3>
           <div className="chart-wrapper">
-            <RadarChart />
+            <RadarChart scores={result.scores} />
           </div>
         </div>
 
-        <div className="best-response">
-          <h3>🌟 今日のベスト返答</h3>
-          <div className="best-response-text">
-            「その件につきましては、昨日までに資料をまとめ終えております。明日の会議で詳しくご報告させていただきます。」
+        {result.best_response && (
+          <div className="best-response">
+            <h3>🌟 今日のベスト返答</h3>
+            <div className="best-response-text">{result.best_response}</div>
           </div>
-        </div>
+        )}
 
-        <div className="feedback-section">
-          <h3>👍 良かった点</h3>
-          <div className="feedback-list">
-            <div className="feedback-item">
-              <div className="feedback-icon">✅</div>
-              <div>敬語の使い方が正確で、ビジネスシーンに適した表現ができていました。</div>
-            </div>
-            <div className="feedback-item">
-              <div className="feedback-icon">✅</div>
-              <div>結論から先に述べる報告スタイルで、要点が明確に伝わりました。</div>
-            </div>
-            <div className="feedback-item">
-              <div className="feedback-icon">✅</div>
-              <div>相手の質問に対して具体的な情報を提示できていました。</div>
+        {result.feedback?.good?.length > 0 && (
+          <div className="feedback-section">
+            <h3>👍 良かった点</h3>
+            <div className="feedback-list">
+              {result.feedback.good.map((item, i) => (
+                <div className="feedback-item" key={i}>
+                  <div className="feedback-icon">✅</div>
+                  <div>{item}</div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
 
-        <div className="feedback-section">
-          <h3>💡 改善点</h3>
-          <div className="feedback-list">
-            <div className="feedback-item">
-              <div className="feedback-icon">📝</div>
-              <div>話と話の間に「えーっと」などのフィラーワードが多く見られました。一呼吸置いてから話すことを意識しましょう。</div>
-            </div>
-            <div className="feedback-item">
-              <div className="feedback-icon">📝</div>
-              <div>もう少し共感の表現を入れると、コミュニケーションが円滑になります。「ご心配おかけして申し訳ございません」などの配慮の言葉を追加してみましょう。</div>
-            </div>
-            <div className="feedback-item">
-              <div className="feedback-icon">📝</div>
-              <div>話すスピードが少し速いです。相手が理解しやすいよう、もう少しゆっくり話すことを心がけましょう。</div>
+        {result.feedback?.improve?.length > 0 && (
+          <div className="feedback-section">
+            <h3>💡 改善点</h3>
+            <div className="feedback-list">
+              {result.feedback.improve.map((item, i) => (
+                <div className="feedback-item" key={i}>
+                  <div className="feedback-icon">📝</div>
+                  <div>{item}</div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
 
         <div className="action-buttons">
           <button className="action-button secondary" onClick={() => navigate('scenario')}>

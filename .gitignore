@@ -27,4 +27,8 @@ dist-ssr
 *.sln
 *.sw?
 .claude
-.venv
+
+gdgoc2026-18867-firebase-adminsdk-fbsvc-e147e83787.json
+__pycache__
+*.pyc
+*.pyo
