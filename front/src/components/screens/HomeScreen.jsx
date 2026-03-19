@@ -1,6 +1,15 @@
-import { recentHistory } from '../../data/mockData';
+import { useState, useEffect } from 'react';
+import { getRecords } from '../../api/recordApi';
 
-export default function HomeScreen({ navigate }) {
+export default function HomeScreen({ navigate, userId }) {
+  const [recentHistory, setRecentHistory] = useState([]);
+
+  useEffect(() => {
+    getRecords(userId)
+      .then(records => setRecentHistory(records.slice(-3).reverse()))
+      .catch(() => {});
+  }, [userId]);
+
   return (
     <div className="screen active">
       <div className="home-header">
@@ -32,15 +41,20 @@ export default function HomeScreen({ navigate }) {
       <div className="recent-section">
         <h2 className="section-title">最近の練習</h2>
         <div className="recent-cards">
-          {recentHistory.map((item, i) => (
-            <div className="recent-card" key={i}>
-              <div className="recent-info">
-                <h4>{item.title}</h4>
-                <p>{item.meta}</p>
+          {recentHistory.map((item, i) => {
+            const score = Math.round(
+              (item.scores.clarity + item.scores.keigo + item.scores.tempo + item.scores.empathy) / 4
+            );
+            return (
+              <div className="recent-card" key={i}>
+                <div className="recent-info">
+                  <h4>{item.scenario_name}</h4>
+                  <p>{new Date(item.created_at).toLocaleDateString('ja-JP')}</p>
+                </div>
+                <div className="recent-score">{score}点</div>
               </div>
-              <div className="recent-score">{item.score}点</div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

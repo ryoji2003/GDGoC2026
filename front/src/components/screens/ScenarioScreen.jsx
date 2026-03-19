@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { scenarios, scenarioCategoryLabels, scenarioDescriptions } from '../../data/mockData';
+import { useState, useEffect } from 'react';
+import { getScenarios } from '../../api/scenarioApi';
 
 const categories = [
   { id: 'all', label: 'すべて' },
@@ -10,8 +10,26 @@ const categories = [
   { id: 'first', label: '初対面' },
 ];
 
+const categoryLabels = {
+  work: '職場',
+  first: '初対面',
+  friend: '友人',
+  romance: '恋愛',
+  daily: '日常',
+};
+
 export default function ScenarioScreen({ navigate }) {
   const [activeCategory, setActiveCategory] = useState('all');
+  const [scenarios, setScenarios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    getScenarios()
+      .then(setScenarios)
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = scenarios.filter(
     s => activeCategory === 'all' || s.category === activeCategory
@@ -35,24 +53,22 @@ export default function ScenarioScreen({ navigate }) {
       </div>
 
       <div className="scenario-list">
-        {filtered.map(scenario => (
+        {loading && <div className="loading">読み込み中...</div>}
+        {error && <div className="error">エラー: {error}</div>}
+        {!loading && !error && filtered.map(scenario => (
           <div
-            key={scenario.id}
+            key={scenario.name}
             className="scenario-card"
-            onClick={() => navigate('conversation', scenario.title)}
+            onClick={() => navigate('conversation', scenario.name)}
           >
             <div className="scenario-card-header">
               <div>
-                <div className="scenario-title">{scenario.title}</div>
-                <div className="scenario-category">{scenarioCategoryLabels[scenario.category]}</div>
+                <div className="scenario-title">{scenario.name}</div>
+                <div className="scenario-category">{categoryLabels[scenario.category] || scenario.category}</div>
               </div>
               <div className="scenario-difficulty">{scenario.difficulty}</div>
             </div>
-            <div className="scenario-description">{scenarioDescriptions[scenario.id]}</div>
-            <div className="scenario-meta">
-              <span>⏱️ {scenario.duration}</span>
-              <span>💬 難易度: {scenario.level}</span>
-            </div>
+            <div className="scenario-description">{scenario.description}</div>
           </div>
         ))}
       </div>

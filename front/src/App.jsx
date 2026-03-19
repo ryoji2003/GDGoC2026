@@ -7,10 +7,21 @@ import ConversationScreen from './components/screens/ConversationScreen';
 import EvaluationScreen from './components/screens/EvaluationScreen';
 import RecordScreen from './components/screens/RecordScreen';
 
+function getOrCreateUserId() {
+  let id = localStorage.getItem('speakup_user_id');
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem('speakup_user_id', id);
+  }
+  return id;
+}
+
 function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [activeScenario, setActiveScenario] = useState('');
   const [theme, setTheme] = useState('light');
+  const [userId] = useState(() => getOrCreateUserId());
+  const [conversationHistory, setConversationHistory] = useState([]);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -25,6 +36,11 @@ function App() {
     setCurrentScreen(screen);
   }
 
+  function handleConversationEnd(history) {
+    setConversationHistory(history);
+    navigate('evaluation');
+  }
+
   function toggleTheme() {
     setTheme(t => t === 'light' ? 'dark' : 'light');
   }
@@ -32,16 +48,23 @@ function App() {
   return (
     <>
       <ThemeToggle theme={theme} onToggle={toggleTheme} />
-      {currentScreen === 'home' && <HomeScreen navigate={navigate} />}
+      {currentScreen === 'home' && <HomeScreen navigate={navigate} userId={userId} />}
       {currentScreen === 'scenario' && <ScenarioScreen navigate={navigate} />}
       {currentScreen === 'conversation' && (
         <ConversationScreen
           scenarioName={activeScenario}
-          onEnd={() => navigate('evaluation')}
+          onEnd={handleConversationEnd}
         />
       )}
-      {currentScreen === 'evaluation' && <EvaluationScreen navigate={navigate} />}
-      {currentScreen === 'record' && <RecordScreen />}
+      {currentScreen === 'evaluation' && (
+        <EvaluationScreen
+          navigate={navigate}
+          conversationHistory={conversationHistory}
+          userId={userId}
+          scenarioName={activeScenario}
+        />
+      )}
+      {currentScreen === 'record' && <RecordScreen userId={userId} />}
       <BottomNav currentScreen={currentScreen} navigate={navigate} />
     </>
   );

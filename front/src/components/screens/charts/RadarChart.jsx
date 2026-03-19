@@ -8,26 +8,10 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { radarData } from '../../../data/mockData';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
-const data = {
-  labels: radarData.labels,
-  datasets: [
-    {
-      label: '今回のスコア',
-      data: radarData.scores,
-      fill: true,
-      backgroundColor: 'rgba(108, 99, 255, 0.2)',
-      borderColor: 'rgba(108, 99, 255, 1)',
-      pointBackgroundColor: 'rgba(108, 99, 255, 1)',
-      pointBorderColor: '#fff',
-      pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: 'rgba(108, 99, 255, 1)',
-    },
-  ],
-};
+const labels = ['話の明確さ', '敬語の正確さ', 'テンポ・間', '共感表現'];
 
 const options = {
   elements: { line: { borderWidth: 3 } },
@@ -42,6 +26,27 @@ const options = {
   plugins: { legend: { display: false } },
 };
 
-export default function RadarChart() {
+export default function RadarChart({ scores }) {
+  const scoreValues = scores
+    ? [scores.clarity, scores.keigo, scores.tempo, scores.empathy]
+    : [0, 0, 0, 0];
+
+  const data = {
+    labels,
+    datasets: [
+      {
+        label: '今回のスコア',
+        data: scoreValues,
+        fill: true,
+        backgroundColor: 'rgba(108, 99, 255, 0.2)',
+        borderColor: 'rgba(108, 99, 255, 1)',
+        pointBackgroundColor: 'rgba(108, 99, 255, 1)',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgba(108, 99, 255, 1)',
+      },
+    ],
+  };
+
   return <Radar data={data} options={options} />;
 }
