@@ -259,153 +259,254 @@ body {
     margin-top: 10px;
 }
 
-/* 会話練習画面 */
-.conversation-screen {
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - 70px);
-    background: var(--background-color);
+/* 会話練習画面（ビデオ通話風） */
+.video-call-screen {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: #000;
+    z-index: 200;
 }
 
-.conversation-header {
-    background: var(--card-background);
-    padding: 15px 20px;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.scenario-info {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.end-button {
-    background: var(--accent-color);
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    cursor: pointer;
-}
-
-.progress-bar {
-    height: 4px;
-    background: var(--border-color);
-    position: relative;
-}
-
-.progress-fill {
-    height: 100%;
-    background: var(--primary-color);
-    width: 45%;
-    transition: width 0.3s;
-}
-
-.ai-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 30px 20px;
-}
-
-.ai-avatar {
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #8B82FF 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-    box-shadow: 0 8px 30px rgba(108, 99, 255, 0.3);
-    animation: avatarPulse 2s infinite;
-    position: relative;
-}
-
-.ai-avatar.speaking {
-    animation: avatarPulse 0.8s infinite;
-}
-
-@keyframes avatarPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-.ai-avatar-icon {
-    font-size: 60px;
-}
-
-.speech-bubble {
-    background: var(--card-background);
-    padding: 20px;
-    border-radius: 20px;
-    max-width: 85%;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    position: relative;
-    margin-bottom: 10px;
-}
-
-.speech-bubble::before {
-    content: '';
+/* AI背景画像（プレースホルダー：グラデーション） */
+.video-bg-image {
     position: absolute;
-    top: -10px;
+    inset: 0;
+    background: linear-gradient(160deg, #2d4a6e 0%, #1a2a40 40%, #3a2a5a 70%, #1a1a2e 100%);
+    transition: filter 0.3s;
+}
+
+.video-bg-image::after {
+    content: '👤';
+    position: absolute;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid var(--card-background);
+    transform: translate(-50%, -60%);
+    font-size: 160px;
+    opacity: 0.25;
+    filter: grayscale(1);
 }
 
-.speech-text {
+.video-bg-image.speaking::after {
+    animation: avatarBreath 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes avatarBreath {
+    from { transform: translate(-50%, -60%) scale(1); opacity: 0.25; }
+    to   { transform: translate(-50%, -60%) scale(1.04); opacity: 0.35; }
+}
+
+/* 上部ヘッダーオーバーレイ */
+.video-header-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%);
+    padding-bottom: 20px;
+}
+
+.video-progress-bar {
+    height: 3px;
+    background: rgba(255,255,255,0.2);
+}
+
+.video-progress-fill {
+    height: 100%;
+    background: #6C63FF;
+    transition: width 0.4s ease;
+}
+
+.video-header-content {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px 0;
+    gap: 12px;
+}
+
+.video-scenario-name {
+    color: white;
     font-size: 15px;
-    line-height: 1.6;
-    color: var(--text-primary);
+    font-weight: 600;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
 }
 
-.user-section {
-    background: var(--card-background);
-    padding: 25px 20px;
-    border-top: 1px solid var(--border-color);
+/* AI字幕テキスト */
+.ai-subtitle {
+    position: absolute;
+    top: 80px;
+    left: 16px;
+    right: 16px;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 14px;
+    padding: 14px 18px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.ai-subtitle p {
+    color: #fff;
+    font-size: 15px;
+    line-height: 1.65;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+/* ユーザー発話テキスト */
+.user-subtitle {
+    position: absolute;
+    bottom: 160px;
+    left: 16px;
+    right: 155px;
+    z-index: 10;
+    background: rgba(108, 99, 255, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 12px;
+    padding: 10px 14px;
+    border: 1px solid rgba(108, 99, 255, 0.4);
+}
+
+.user-subtitle p {
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* エラー表示 */
+.video-error {
+    position: absolute;
+    top: 50%;
+    left: 16px;
+    right: 16px;
+    transform: translateY(-50%);
+    z-index: 20;
+    background: rgba(220, 53, 69, 0.85);
+    color: white;
+    font-size: 13px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+/* ユーザーワイプ（右下） */
+.user-wipe {
+    position: absolute;
+    bottom: 155px;
+    right: 16px;
+    width: 110px;
+    height: 145px;
+    z-index: 15;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.3);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+.user-wipe-inner {
+    width: 100%;
+    height: 100%;
+    background: #111;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 8px;
+}
+
+.user-wipe-label {
+    color: rgba(255,255,255,0.6);
+    font-size: 11px;
+}
+
+/* 下部コントロールバー */
+.video-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%);
+    padding: 20px 0 36px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 10px;
 }
 
-.mic-button {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: var(--accent-color);
+.video-controls-hint {
+    color: rgba(255,255,255,0.7);
+    font-size: 12px;
+    letter-spacing: 0.3px;
+    min-height: 16px;
+}
+
+.video-controls-buttons {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+/* 汎用ビデオボタン */
+.video-btn {
     border: none;
-    color: white;
-    font-size: 36px;
     cursor: pointer;
-    box-shadow: 0 8px 20px rgba(255, 101, 132, 0.4);
-    transition: all 0.2s;
-    position: relative;
-    margin-bottom: 15px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, opacity 0.15s;
+    color: white;
 }
 
-.mic-button.recording {
-    animation: micPulse 0.8s infinite;
+.video-btn:active {
+    transform: scale(0.93);
+}
+
+/* サブボタン（音量など） */
+.video-btn-mute {
+    width: 52px;
+    height: 52px;
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.25);
+}
+
+/* マイクボタン（メイン） */
+.video-btn-mic {
+    width: 72px;
+    height: 72px;
+    background: rgba(255,255,255,0.22);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,0.5);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.video-btn-mic.recording {
+    background: rgba(255, 59, 92, 0.85);
+    border-color: #FF3B5C;
+    animation: micGlow 0.7s ease-in-out infinite alternate;
+}
+
+.video-btn-mic.disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+@keyframes micGlow {
+    from { box-shadow: 0 4px 20px rgba(255, 59, 92, 0.4); }
+    to   { box-shadow: 0 4px 32px rgba(255, 59, 92, 0.8); }
+}
+
+/* 終了ボタン */
+.video-btn-end {
+    width: 52px;
+    height: 52px;
     background: #FF3B5C;
-}
-
-@keyframes micPulse {
-    0%, 100% { transform: scale(1); box-shadow: 0 8px 20px rgba(255, 101, 132, 0.4); }
-    50% { transform: scale(1.1); box-shadow: 0 12px 30px rgba(255, 101, 132, 0.6); }
-}
-
-.user-response {
-    font-size: 14px;
-    color: var(--text-secondary);
-    text-align: center;
-    min-height: 20px;
+    box-shadow: 0 4px 16px rgba(255, 59, 92, 0.5);
 }
 
 /* 評価画面 */

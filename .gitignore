@@ -2,6 +2,7 @@
 .env
 .DS_Store
 *.sqlite
+claude.md
 # Logs
 logs
 *.log
@@ -31,4 +32,4 @@ dist-ssr
 gdgoc2026-18867-firebase-adminsdk-fbsvc-e147e83787.json
 __pycache__
 *.pyc
-*.pyo
+*.pyoclaude.md
