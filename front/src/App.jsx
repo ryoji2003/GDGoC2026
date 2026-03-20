@@ -47,7 +47,7 @@ function App() {
 
   return (
     <>
-      <ThemeToggle theme={theme} onToggle={toggleTheme} />
+      {currentScreen !== 'conversation' && <ThemeToggle theme={theme} onToggle={toggleTheme} />}
       {currentScreen === 'home' && <HomeScreen navigate={navigate} userId={userId} />}
       {currentScreen === 'scenario' && <ScenarioScreen navigate={navigate} />}
       {currentScreen === 'conversation' && (
@@ -65,7 +65,7 @@ function App() {
         />
       )}
       {currentScreen === 'record' && <RecordScreen userId={userId} />}
-      <BottomNav currentScreen={currentScreen} navigate={navigate} />
+      {currentScreen !== 'conversation' && <BottomNav currentScreen={currentScreen} navigate={navigate} />}
     </>
   );
 }
